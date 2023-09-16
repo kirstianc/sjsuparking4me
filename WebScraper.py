@@ -25,27 +25,67 @@ COMMENT: n/a
 # Imports
 import requests
 from bs4 import BeautifulSoup
+from datetime import datetime
+import time
 
 URL = "https://sjsuparkingstatus.sjsu.edu/"
 
-# Function to scrape parking data
-def scrape_parking_data():
+# Function to scrape parking data and store snapshots
+def scrape_and_store_parking_data(data_snapshots):
     try:
-        response = requests.get(URL)
+        response = requests.get(URL, verify=False)
 
         # If successful, proceed with processing the data
         if response.status_code == 200:
             soup = BeautifulSoup(response.text, 'html.parser')
 
-            # Find the element that contains the parking data
-            parking_data = soup.find('div', class_='your-parking-data-class')
+            sjsu_main = soup.find('main', class_='sjsu-main')
+            if sjsu_main:
+                print("Found 'sjsu-main' element.")
+                
+                wrap = sjsu_main.find('div', class_='wrap')
+                if wrap:
+                    print("Found 'wrap' element.")
+                    
+                    garage = wrap.find('div', class_='garage')
+                    if garage:
+                        print("Found 'garage' element.")
+                        
+                        garage_text_elements = garage.find_all('p', class_='garage__text')
+                        
+                        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        snapshot_data = {'time': current_time}
 
-            # Extract and process the parking data
-            if parking_data:
-                parking_data = parking_data.text.strip()
-                return parking_data
+                        for garage_text_element in garage_text_elements:
+                            print("Found 'garage__text' element.")
+                            
+                            parking_percentage_element = garage_text_element.find('span', class_='garage__fullness')
+
+                            if parking_percentage_element:
+                                parking_percentage = parking_percentage_element.text.strip()
+
+                                # find garage name within the <h2> element
+                                garage_name_element = garage_text_element.find_previous('h2', class_='garage__name')
+
+                                if garage_name_element:
+                                    print("Found 'garage__name' element.")
+                                    
+                                    garage_name = garage_name_element.text.strip()
+                                    print(f"Garage Name: {garage_name}")
+                                    print(f"Parking Percentage: {parking_percentage}")
+                                    
+                                    # add parking percentage to snapshot dictionary
+                                    snapshot_data[garage_name] = parking_percentage
+                            else:
+                                print("Could not find 'garage__fullness' element within a 'garage__text' element.")
+
+                        data_snapshots.append(snapshot_data)
+
+                else:
+                    print("Could not find 'garage' element.")
+                    return None
             else:
-                print("Could not find parking data element on the page.")
+                print("Could not find 'wrap' element.")
                 return None
         else:
             print(f"Failed to retrieve data. Status code: {response.status_code}")
@@ -55,9 +95,19 @@ def scrape_parking_data():
         return None
 
 if __name__ == '__main__':
-    parking_data = scrape_parking_data()
-    if parking_data:
-        print("Parking Data:")
-        print(parking_data)
-    else:
-        print("No data retrieved.")
+    data_snapshots = []
+
+    while True:
+        parking_data = scrape_and_store_parking_data(data_snapshots)
+        if parking_data:
+            print("Parking Data:")
+            for snapshot in data_snapshots:
+                print("Snapshot Time:", snapshot['time'])
+                for garage, percentage in snapshot.items():
+                    if garage != 'time':
+                        print(f"{garage}: {percentage}")
+        else:
+            print("No data retrieved.")
+        
+        # wait 4 minutes before the next scrape
+        time.sleep(240)  
