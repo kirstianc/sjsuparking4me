@@ -41,15 +41,15 @@ def scrape_and_store_parking_data(data_snapshots):
 
             sjsu_main = soup.find('main', class_='sjsu-main')
             if sjsu_main:
-                print("Found 'sjsu-main' element.")
+                #print("Found 'sjsu-main' element.")
                 
                 wrap = sjsu_main.find('div', class_='wrap')
                 if wrap:
-                    print("Found 'wrap' element.")
+                    #print("Found 'wrap' element.")
                     
                     garage = wrap.find('div', class_='garage')
                     if garage:
-                        print("Found 'garage' element.")
+                        #print("Found 'garage' element.")
                         
                         garage_text_elements = garage.find_all('p', class_='garage__text')
                         
@@ -57,7 +57,7 @@ def scrape_and_store_parking_data(data_snapshots):
                         snapshot_data = {'time': current_time}
 
                         for garage_text_element in garage_text_elements:
-                            print("Found 'garage__text' element.")
+                            #print("Found 'garage__text' element.")
                             
                             parking_percentage_element = garage_text_element.find('span', class_='garage__fullness')
 
@@ -68,7 +68,7 @@ def scrape_and_store_parking_data(data_snapshots):
                                 garage_name_element = garage_text_element.find_previous('h2', class_='garage__name')
 
                                 if garage_name_element:
-                                    print("Found 'garage__name' element.")
+                                    #print("Found 'garage__name' element.")
                                     
                                     garage_name = garage_name_element.text.strip()
                                     print(f"Garage Name: {garage_name}")
@@ -76,10 +76,15 @@ def scrape_and_store_parking_data(data_snapshots):
                                     
                                     # add parking percentage to snapshot dictionary
                                     snapshot_data[garage_name] = parking_percentage
+                                    print(f"Added {garage_name} to snapshot data.")
+                                    print(snapshot_data, "\n")
                             else:
                                 print("Could not find 'garage__fullness' element within a 'garage__text' element.")
-
+                        #print("Out of 'garage__text' elements.")
                         data_snapshots.append(snapshot_data)
+                        #print("Added snapshot data to data snapshots list.")
+                        #print(data_snapshots, "\n")
+                        return data_snapshots
 
                 else:
                     print("Could not find 'garage' element.")
@@ -106,6 +111,7 @@ if __name__ == '__main__':
                 for garage, percentage in snapshot.items():
                     if garage != 'time':
                         print(f"{garage}: {percentage}")
+            data_snapshots.clear()
         else:
             print("No data retrieved.")
         
