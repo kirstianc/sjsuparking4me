@@ -57,7 +57,7 @@ def scrape_and_store_parking_data(data_snapshots):
                         current_time = datetime.now()
                         snapshot_data = {
                             'time': current_time.strftime("%Y-%m-%d %H:%M:%S"),
-                            'day_of_week': current_time.strftime("%A")  # Get the day of the week
+                            'day_of_week': current_time.strftime("%A")
                         }
 
                         for garage_text_element in garage_text_elements:
