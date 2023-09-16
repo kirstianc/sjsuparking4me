@@ -20,6 +20,11 @@ MOD: Creation of file and initial function
 AUTHOR: Ian Chavez
 COMMENT: n/a
 
+09/15/23:
+MOD: Functionality works + resolved errors
+AUTHOR: Ian Chavez
+COMMENT: n/a
+
 ====================== END OF MODIFICATION HISTORY ============================
 """
 # Imports
@@ -30,60 +35,48 @@ import time
 
 URL = "https://sjsuparkingstatus.sjsu.edu/"
 
-# Function to scrape parking data and store snapshots
 def scrape_and_store_parking_data(data_snapshots):
     try:
         response = requests.get(URL, verify=False)
 
-        # If successful, proceed with processing the data
+        # if success
         if response.status_code == 200:
             soup = BeautifulSoup(response.text, 'html.parser')
 
             sjsu_main = soup.find('main', class_='sjsu-main')
             if sjsu_main:
-                #print("Found 'sjsu-main' element.")
                 
                 wrap = sjsu_main.find('div', class_='wrap')
                 if wrap:
-                    #print("Found 'wrap' element.")
                     
                     garage = wrap.find('div', class_='garage')
                     if garage:
-                        #print("Found 'garage' element.")
                         
                         garage_text_elements = garage.find_all('p', class_='garage__text')
                         
-                        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        snapshot_data = {'time': current_time}
+                        current_time = datetime.now()
+                        snapshot_data = {
+                            'time': current_time.strftime("%Y-%m-%d %H:%M:%S"),
+                            'day_of_week': current_time.strftime("%A")  # Get the day of the week
+                        }
 
                         for garage_text_element in garage_text_elements:
-                            #print("Found 'garage__text' element.")
                             
                             parking_percentage_element = garage_text_element.find('span', class_='garage__fullness')
 
                             if parking_percentage_element:
                                 parking_percentage = parking_percentage_element.text.strip()
 
-                                # find garage name within the <h2> element
                                 garage_name_element = garage_text_element.find_previous('h2', class_='garage__name')
 
                                 if garage_name_element:
-                                    #print("Found 'garage__name' element.")
-                                    
                                     garage_name = garage_name_element.text.strip()
-                                    print(f"Garage Name: {garage_name}")
-                                    print(f"Parking Percentage: {parking_percentage}")
                                     
                                     # add parking percentage to snapshot dictionary
                                     snapshot_data[garage_name] = parking_percentage
-                                    print(f"Added {garage_name} to snapshot data.")
-                                    print(snapshot_data, "\n")
                             else:
                                 print("Could not find 'garage__fullness' element within a 'garage__text' element.")
-                        #print("Out of 'garage__text' elements.")
                         data_snapshots.append(snapshot_data)
-                        #print("Added snapshot data to data snapshots list.")
-                        #print(data_snapshots, "\n")
                         return data_snapshots
 
                 else:
