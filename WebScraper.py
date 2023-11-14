@@ -38,6 +38,7 @@ URL = "https://sjsuparkingstatus.sjsu.edu/"
 
 def scrape_and_store_parking_data(data_snapshots):
     try:
+        cert_path = certifi.where()
         response = requests.get(URL, verify=cert_path)
 
         # if success
