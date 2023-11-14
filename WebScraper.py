@@ -32,12 +32,13 @@ import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
 import time
+import certifi
 
 URL = "https://sjsuparkingstatus.sjsu.edu/"
 
 def scrape_and_store_parking_data(data_snapshots):
     try:
-        response = requests.get(URL, verify=False)
+        response = requests.get(URL, verify=cert_path)
 
         # if success
         if response.status_code == 200:
@@ -103,7 +104,7 @@ if __name__ == '__main__':
                 print("Snapshot Time:", snapshot['time'])
                 for garage, percentage in snapshot.items():
                     if garage != 'time':
-                        print(f"{garage}: {percentage}")
+                        print(f"{garage}: {percentage} ")
             data_snapshots.clear()
         else:
             print("No data retrieved.")
