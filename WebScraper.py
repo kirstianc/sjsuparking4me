@@ -133,7 +133,12 @@ def clean_data(data_snapshots):
     for snapshot in data_snapshots:
         for garage, percentage in snapshot.items():
             if garage != "time" and garage != "day_of_week":
-                snapshot[garage] = int(percentage.replace("%", ""))
+                # Check if the value is "FULL" and convert it to 100
+                if isinstance(percentage, str):
+                    if percentage == "Full":
+                        snapshot[garage] = 100
+                    else:
+                        snapshot[garage] = int(percentage.replace("%", ""))
     return data_snapshots
 
 
@@ -176,17 +181,26 @@ def upload_data_gsheet(data_snapshots, worksheet):
 
 if __name__ == "__main__":
     data_snapshots = []
+    parking_data = None
 
     while True:
         if is_valid_time():
             print("\n--- Scraping data ---")
-            parking_data = scrape_and_store_parking_data(data_snapshots)
+            try:
+                parking_data = scrape_and_store_parking_data(data_snapshots)
+            except Exception as e:
+                print(f"An error occurred while scraping data: {str(e)}")
+
             print("\n--- Parking data ---")
             print(parking_data)
             print("--------------------")
 
             print("\n--- Cleaning data ---")
-            parking_data = clean_data(parking_data)
+            try:
+                parking_data = clean_data(parking_data)
+            except Exception as e:
+                print(f"An error occurred while cleaning data: {str(e)}")
+
             print("\n--- Cleaned data ---")
             print(parking_data)
             print("--------------------")
@@ -199,6 +213,11 @@ if __name__ == "__main__":
             if current_sheet is not None:
                 upload_data_gsheet(parking_data, current_sheet)
             print("---------------------------")
+
+            print("\n--- Clearing data ---")
+            data_snapshots.clear()
+            print("--- Data cleared ---")
+
             print("\n--- Waiting 4 minutes ---")
         else:
             print("Currently outside of the specified time range. Waiting...")
