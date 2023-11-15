@@ -39,8 +39,8 @@ COMMENT:
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
-import time
-import certifi
+from datetime import time
+from time import sleep
 import gspread
 from config import GOOGLE_SHEETS_CREDENTIALS
 
@@ -67,8 +67,7 @@ def is_valid_time():
 
 def scrape_and_store_parking_data(data_snapshots):
     try:
-        cert_path = certifi.where()
-        response = requests.get(URL, verify=cert_path)
+        response = requests.get(URL, verify=False)
 
         if response.status_code == 200:
             soup = BeautifulSoup(response.text, "html.parser")
@@ -200,8 +199,9 @@ if __name__ == "__main__":
             if current_sheet is not None:
                 upload_data_gsheet(parking_data, current_sheet)
             print("---------------------------")
+            print("\n--- Waiting 4 minutes ---")
         else:
             print("Currently outside of the specified time range. Waiting...")
 
         # Wait 4 minutes before the next scrape
-        time.sleep(240)
+        sleep(240)
