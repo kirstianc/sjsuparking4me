@@ -26,12 +26,12 @@ AUTHOR: Ian Chavez
 COMMENT: n/a
 
 11/14/23:
-MOD: Test Certifi + Google Sheet compatibility
+MOD: Test Certifi, Google Sheet, Timer
 AUTHOR: Ian Chavez
 COMMENT:
-    - Test Certifi: Doesn't work, issue with SSL certificate? SJSU side error?
-        Reverting back to verify=False
-    - Google Sheet compatibility: Works, data is being sent to Google Sheet
+    - Test Certifi: SSL Certificate errors...
+    - Google Sheet: Works, data is being sent to Google Sheet
+    - Timer: Works, data is being sent to Google Sheet every 4 minutes (check if w/in bounds)
 
 ====================== END OF MODIFICATION HISTORY ============================
 """
@@ -54,6 +54,15 @@ worksheet_map = {
     "Saturday": "Saturday",
     "Sunday": "Sunday",
 }
+
+# student permits are valid from 6:00 AM to 11:59 PM thus only scraping during that time
+start_time = time(6, 0)  # 6:00 AM
+end_time = time(23, 59)  # 11:59 PM
+
+
+def is_valid_time():
+    current_time = datetime.now().time()
+    return start_time <= current_time <= end_time
 
 
 def scrape_and_store_parking_data(data_snapshots):
@@ -170,39 +179,29 @@ if __name__ == "__main__":
     data_snapshots = []
 
     while True:
-        print("\n--- Scraping data ---")
-        parking_data = scrape_and_store_parking_data(data_snapshots)
-        print("\n--- Parking data ---")
-        print(parking_data)
-        print("--------------------")
+        if is_valid_time():
+            print("\n--- Scraping data ---")
+            parking_data = scrape_and_store_parking_data(data_snapshots)
+            print("\n--- Parking data ---")
+            print(parking_data)
+            print("--------------------")
 
-        print("\n--- Cleaning data ---")
-        parking_data = clean_data(parking_data)
-        print("\n--- Cleaned data ---")
-        print(parking_data)
-        print("--------------------")
+            print("\n--- Cleaning data ---")
+            parking_data = clean_data(parking_data)
+            print("\n--- Cleaned data ---")
+            print(parking_data)
+            print("--------------------")
 
-        print("\n--- Accessing GSheet ---")
-        current_sheet = access_sheet()
-        print("------------------------")
+            print("\n--- Accessing GSheet ---")
+            current_sheet = access_sheet()
+            print("------------------------")
 
-        print("\n--- Uploading to GSheet ---")
-        if current_sheet is not None:
-            upload_data_gsheet(parking_data, current_sheet)
-        print("---------------------------")
-
-        # wait 4 minutes before the next scrape
-        time.sleep(240)
-
-"""
-        if parking_data:
-            print("Parking Data:")
-            for snapshot in data_snapshots:
-                print("Snapshot Time:", snapshot['time'])
-                for garage, percentage in snapshot.items():
-                    if garage != 'time':
-                        print(f"{garage}: {percentage} ")
-            data_snapshots.clear()
+            print("\n--- Uploading to GSheet ---")
+            if current_sheet is not None:
+                upload_data_gsheet(parking_data, current_sheet)
+            print("---------------------------")
         else:
-            print("No data retrieved.")
-"""
+            print("Currently outside of the specified time range. Waiting...")
+
+        # Wait 4 minutes before the next scrape
+        time.sleep(240)
