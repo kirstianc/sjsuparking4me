@@ -40,6 +40,7 @@ import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
 import time
+import certifi
 import gspread
 from config import GOOGLE_SHEETS_CREDENTIALS
 
